@@ -1,0 +1,167 @@
+#include <windows.h>
+#include <string>
+#include <cmath>
+#include <iomanip>
+#include <sstream>
+
+#pragma comment(linker, "/SUBSYSTEM:WINDOWS")
+
+// Control IDs
+#define ID_CALCULATE_BTN 1
+#define ID_WEIGHT_EDIT   2
+#define ID_FEET_EDIT     3
+#define ID_INCHES_EDIT   4
+#define ID_RESULT_LABEL  5
+
+// Global brushes and fonts for styling
+HBRUSH hBlackBrush = CreateSolidBrush(RGB(0, 0, 0));
+HBRUSH hDarkGrayBrush = CreateSolidBrush(RGB(17, 17, 17));
+HFONT hCustomFont = CreateFont(18, 0, 0, 0, FW_BOLD, FALSE, FALSE, FALSE, DEFAULT_CHARSET,
+    OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS, DEFAULT_QUALITY,
+    DEFAULT_PITCH | FF_SWISS, L"Helvetica");
+
+HWND hWeightEdit, hFeetEdit, hInchesEdit, hResultLabel;
+
+LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
+    switch (uMsg) {
+    case WM_CTLCOLORSTATIC:
+    case WM_CTLCOLORDLG: {
+        HDC hdcStatic = (HDC)wParam;
+        HWND hwndControl = (HWND)lParam;
+
+        // Check if the control asking for color is our output label
+        if (hwndControl == hResultLabel) {
+            // Updated to a bright, vibrant Deep Sky Blue
+            SetTextColor(hdcStatic, RGB(0, 191, 255));
+        }
+        else {
+            // Lime Green for all other labels
+            SetTextColor(hdcStatic, RGB(50, 205, 50));
+        }
+
+        SetBkColor(hdcStatic, RGB(0, 0, 0));            // Black background
+        return (INT_PTR)hBlackBrush;
+    }
+
+    case WM_CTLCOLOREDIT: {
+        HDC hdcEdit = (HDC)wParam;
+        SetTextColor(hdcEdit, RGB(255, 51, 51));    // Red text inputs
+        SetBkColor(hdcEdit, RGB(17, 17, 17));       // Dark gray background
+        return (INT_PTR)hDarkGrayBrush;
+    }
+    case WM_COMMAND: {
+        if (LOWORD(wParam) == ID_CALCULATE_BTN) {
+            wchar_t weightStr[32], feetStr[32], inchesStr[32];
+            GetWindowTextW(hWeightEdit, weightStr, 32);
+            GetWindowTextW(hFeetEdit, feetStr, 32);
+            GetWindowTextW(hInchesEdit, inchesStr, 32);
+
+            try {
+                double lbs = std::stod(std::wstring(weightStr));
+                double feet = std::stod(std::wstring(feetStr));
+                double inches = std::stod(std::wstring(inchesStr));
+
+                double total_inches = (feet * 12.0) + inches;
+                if (total_inches <= 0 || lbs <= 0) {
+                    SetWindowTextW(hResultLabel, L"Enter positive numbers.");
+                    break;
+                }
+
+                double bmi = (lbs / (total_inches * total_inches)) * 703.0;
+                std::wstring category;
+
+                if (bmi < 18.5) {
+                    category = L"Underweight";
+                }
+                else if (bmi < 24.9) {
+                    category = L"Normal Weight";
+                }
+                else if (bmi < 29.9) {
+                    category = L"Overweight";
+                }
+                else {
+                    category = L"Obese";
+                }
+
+                std::wstringstream stream;
+                stream << std::fixed << std::setprecision(1) << L"BMI: " << bmi << L" (" << category << L")";
+                SetWindowTextW(hResultLabel, stream.str().c_str());
+            }
+            catch (...) {
+                SetWindowTextW(hResultLabel, L"Invalid input! Numbers only.");
+            }
+        }
+        break;
+    }
+    case WM_CREATE: {
+        // Title Label
+        HWND title = CreateWindowW(L"STATIC", L"BMI Calculator", WS_VISIBLE | WS_CHILD | SS_CENTER,
+            50, 15, 300, 30, hwnd, NULL, NULL, NULL);
+        SendMessage(title, WM_SETFONT, (WPARAM)hCustomFont, TRUE);
+
+        // Weight (lbs)
+        CreateWindowW(L"STATIC", L"Weight (lbs):", WS_VISIBLE | WS_CHILD | SS_CENTER,
+            50, 55, 300, 20, hwnd, NULL, NULL, NULL);
+        hWeightEdit = CreateWindowW(L"EDIT", L"", WS_VISIBLE | WS_CHILD | WS_BORDER | ES_CENTER,
+            100, 80, 200, 25, hwnd, (HMENU)ID_WEIGHT_EDIT, NULL, NULL);
+        SendMessage(hWeightEdit, WM_SETFONT, (WPARAM)hCustomFont, TRUE);
+
+        // Height (Feet)
+        CreateWindowW(L"STATIC", L"Height (Feet):", WS_VISIBLE | WS_CHILD | SS_CENTER,
+            50, 115, 300, 20, hwnd, NULL, NULL, NULL);
+        hFeetEdit = CreateWindowW(L"EDIT", L"", WS_VISIBLE | WS_CHILD | WS_BORDER | ES_CENTER,
+            100, 140, 200, 25, hwnd, (HMENU)ID_FEET_EDIT, NULL, NULL);
+        SendMessage(hFeetEdit, WM_SETFONT, (WPARAM)hCustomFont, TRUE);
+
+        // Height (Inches)
+        CreateWindowW(L"STATIC", L"Height (Inches):", WS_VISIBLE | WS_CHILD | SS_CENTER,
+            50, 175, 300, 20, hwnd, NULL, NULL, NULL);
+        hInchesEdit = CreateWindowW(L"EDIT", L"", WS_VISIBLE | WS_CHILD | WS_BORDER | ES_CENTER,
+            100, 200, 200, 25, hwnd, (HMENU)ID_INCHES_EDIT, NULL, NULL);
+        SendMessage(hInchesEdit, WM_SETFONT, (WPARAM)hCustomFont, TRUE);
+
+        // Calculate Button
+        HWND calcBtn = CreateWindowW(L"BUTTON", L"Calculate BMI", WS_VISIBLE | WS_CHILD | BS_PUSHBUTTON,
+            100, 245, 200, 35, hwnd, (HMENU)ID_CALCULATE_BTN, NULL, NULL);
+        SendMessage(calcBtn, WM_SETFONT, (WPARAM)hCustomFont, TRUE);
+
+        // Output Label
+        hResultLabel = CreateWindowW(L"STATIC", L"", WS_VISIBLE | WS_CHILD | SS_CENTER,
+            20, 305, 360, 40, hwnd, (HMENU)ID_RESULT_LABEL, NULL, NULL);
+        SendMessage(hResultLabel, WM_SETFONT, (WPARAM)hCustomFont, TRUE);
+        break;
+    }
+    case WM_DESTROY:
+        DeleteObject(hBlackBrush);
+        DeleteObject(hDarkGrayBrush);
+        DeleteObject(hCustomFont);
+        PostQuitMessage(0);
+        return 0;
+    }
+    return DefWindowProcW(hwnd, uMsg, wParam, lParam);
+}
+
+int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _In_ LPSTR lpCmdLine, _In_ int nCmdShow) {
+    const wchar_t* CLASS_NAME = L"BMICalculatorClass";
+    WNDCLASSW wc = {};
+    wc.lpfnWndProc = WindowProc;
+    wc.hInstance = hInstance;
+    wc.lpszClassName = CLASS_NAME;
+    wc.hbrBackground = hBlackBrush;
+
+    RegisterClassW(&wc);
+
+    HWND hwnd = CreateWindowExW(0, CLASS_NAME, L"BMI Calculator", WS_OVERLAPPEDWINDOW & ~WS_MAXIMIZEBOX & ~WS_SIZEBOX,
+        CW_USEDEFAULT, CW_USEDEFAULT, 416, 410, NULL, NULL, hInstance, NULL);
+
+    if (hwnd == NULL) return 0;
+
+    ShowWindow(hwnd, nCmdShow);
+
+    MSG msg = {};
+    while (GetMessage(&msg, NULL, 0, 0)) {
+        TranslateMessage(&msg);
+        DispatchMessage(&msg);
+    }
+    return 0;
+}
