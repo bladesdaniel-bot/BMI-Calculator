@@ -108,7 +108,16 @@ LRESULT CALLBACK EditSubclassProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lP
 
 LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
     switch (uMsg) {
-    case WM_ERASEBKGND:
+    
+            case WM_NCCALCSIZE: {
+        if (wParam) {
+            // Completely strips out the default system border and top highlight line
+            return 0; 
+        }
+        break;
+    }
+
+        case WM_ERASEBKGND:
         return 1;
 
     case WM_NCHITTEST: {
@@ -337,7 +346,9 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) 
         HBITMAP memBitmap = CreateCompatibleBitmap(hdc, width, height);
         HBITMAP oldBitmap = (HBITMAP)SelectObject(memDC, memBitmap);
 
-        FillRect(memDC, &rect, hBlackBrush);
+        RECT fillRect = { rect.left, rect.top - 1, rect.right, rect.bottom };
+FillRect(memDC, &fillRect, hBlackBrush);
+
 
         HBRUSH hWhiteBrush = CreateSolidBrush(RGB(255, 255, 255));
         HBRUSH hGrayBrush = CreateSolidBrush(RGB(150, 150, 150));
@@ -622,12 +633,11 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) 
         DrawTextW(memDC, L"BMI Calculator", -1, &titleRect, DT_LEFT | DT_SINGLELINE);
         SelectObject(memDC, hOldFontTitle);
 
-        HPEN hPanelPen = CreatePen(PS_SOLID, 2, RGB(0, 191, 255)); 
+        HPEN hPanelPen = CreatePen(PS_SOLID, 3, RGB(0, 191, 255)); 
         HBRUSH oldPanelBr = (HBRUSH)SelectObject(memDC, GetStockObject(HOLLOW_BRUSH));
         HPEN oldPanelPn = (HPEN)SelectObject(memDC, hPanelPen);
 
         RoundRect(memDC, 0, 0, width, height, 14, 14);
-
         SelectObject(memDC, oldPanelBr); SelectObject(memDC, oldPanelPn);
         DeleteObject(hPanelPen); 
 
