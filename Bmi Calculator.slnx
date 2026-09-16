@@ -1,0 +1,7 @@
+<Solution>
+  <Configurations>
+    <Platform Name="x64" />
+    <Platform Name="x86" />
+  </Configurations>
+  <Project Path="Bmi Calculator.vcxproj" Id="6ae3843e-6979-4c75-a0b4-8135ef221a1a" />
+</Solution>
