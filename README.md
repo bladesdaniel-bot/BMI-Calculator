@@ -39,6 +39,13 @@ This project was built entirely in **C++** using the native **Win32 API**.
 6. Destroy planets and alien saucers for points, but watch your Hull Integrity!
 
 ## 🚀 How to Build and Run
+
+### Option 1: Quick Start (Download & Run)
+1. Download the `Bmi Calculator.zip` file from the repository.
+2. Extract the contents of the ZIP to your local machine.
+3. Double-click the extracted `.exe` file to run the application.
+
+### Option 2: Build from Source
 1. Clone this repository to your local machine.
 2. Open the `.sln` file in **Visual Studio**.
 3. Ensure the build configuration is set to **Release** (x64 or x86).
