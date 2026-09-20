@@ -1,5 +1,7 @@
 # 🚀 BMI Calculator & Hidden Sci-Fi Arcade
 
+https://github.com/bladesdaniel-bot/BMI-Calculator/blob/main/BMI%20Calculator%20Video/Bmi%20Calculator%20Full%20Demo.mp4
+
 A custom native Windows desktop application that serves as a fully functional Body Mass Index (BMI) calculator, wrapped in a sleek, dark sci-fi user interface. 
 
 However, with the click of a button, the application seamlessly transforms into a **3D warp-speed space shooter**, featuring interactive flight controls, planetary collision detection, and multi-stage explosions—all built completely from scratch without a game engine.
